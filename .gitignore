@@ -1,0 +1,14 @@
+# Ignore digital product archives
+/DIST/
+/Project_OS_AI_STARTER_v1.0/
+/Project_OS_AI_PRO_v1.0/
+/Project_OS_AI_ULTIMATE_v1.0/
+
+# Ignore internal strategy documents (Project OS files)
+*.md
+
+# Ignore cover and thumbnail images (only needed for Gumroad upload)
+*.png
+
+# Allow README.md if created later
+!README.md
