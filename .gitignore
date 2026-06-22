@@ -9,6 +9,11 @@
 
 # Ignore cover and thumbnail images (only needed for Gumroad upload)
 *.png
+!icon.png
+!logo dengan tulisan di bawah latarbelakang hitam.png
+!Logo dengan tulisan di bawah.png
+!Logo.png
+!Penyusun_Youbellkey.png
 
 # Allow README.md if created later
 !README.md
