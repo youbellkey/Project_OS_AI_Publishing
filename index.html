@@ -64,8 +64,8 @@
       position: fixed;
       top: 0; left: 0; right: 0;
       z-index: 100;
-      padding: 8px 40px;
-      height: 90px;
+      padding: 0 40px;
+      height: 80px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -73,16 +73,25 @@
       backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border-subtle);
     }
-
+ 
     .nav-logo {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.1rem;
-      font-weight: 700;
-      background: var(--gradient-hero);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      letter-spacing: -0.02em;
+      position: relative;
+      height: 100%;
+      width: 240px;
+      display: flex;
+      align-items: center;
+    }
+ 
+    .nav-logo img {
+      height: 152px;
+      width: auto;
+      position: absolute;
+      top: 8px;
+      left: 0;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 24px rgba(4,8,16,0.6));
+      z-index: 105;
+      transition: height 0.3s ease, top 0.3s ease;
     }
 
     .nav-links {
@@ -889,7 +898,9 @@
 
     /* ===== RESPONSIVE ===== */
     @media (max-width: 768px) {
-      nav { padding: 16px 20px; }
+      nav { padding: 0 20px; height: 70px; }
+      .nav-logo { width: 120px; }
+      .nav-logo img { height: 60px !important; top: 5px !important; }
       .nav-links { display: none; }
       section { padding: 72px 0; }
       .hero-content { padding-top: 20px; }
@@ -903,8 +914,8 @@
 
 <!-- ===== NAV ===== -->
 <nav>
-  <div class="nav-logo" style="display: flex; align-items: center; height: 100%;">
-    <img src="Logo.png" alt="Project OS AI Logo" style="height: 74px; width: auto; object-fit: contain; transform: translateY(2px);" />
+  <div class="nav-logo">
+    <img src="Logo.png" alt="Project OS AI Logo" />
   </div>
   <ul class="nav-links">
     <li><a href="#solution">Sistem</a></li>
@@ -1326,110 +1337,172 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-  // --- CUSTOM THREE.JS 3D PARALLAX PARTICLE SYSTEM ---
+  // --- ADVANCED THREE.JS CONSTELLATION & STARFIELD SYSTEM ---
   window.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('hero-canvas');
     if (canvas && typeof THREE !== 'undefined') {
       const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1000);
+      const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
       const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
       
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       
-      // Create particles geometry
-      const particlesCount = 1800;
-      const geometry = new THREE.BufferGeometry();
-      const positions = new Float32Array(particlesCount * 3);
-      const colors = new Float32Array(particlesCount * 3);
+      // 1. STARFIELD (Background Stars)
+      const starsCount = 1000;
+      const starsGeometry = new THREE.BufferGeometry();
+      const starsPositions = new Float32Array(starsCount * 3);
+      for (let i = 0; i < starsCount * 3; i += 3) {
+        starsPositions[i] = (Math.random() - 0.5) * 200;
+        starsPositions[i+1] = (Math.random() - 0.5) * 120;
+        starsPositions[i+2] = (Math.random() - 0.5) * 150;
+      }
+      starsGeometry.setAttribute('position', new THREE.BufferAttribute(starsPositions, 3));
+      const starsMaterial = new THREE.PointsMaterial({
+        size: 0.35,
+        color: 0x9b6dff,
+        transparent: true,
+        opacity: 0.4,
+        blending: THREE.AdditiveBlending
+      });
+      const starfield = new THREE.Points(starsGeometry, starsMaterial);
+      scene.add(starfield);
       
-      const themeColors = [
-        new THREE.Color(0x4f8fff), // Accent Blue
-        new THREE.Color(0x9b6dff), // Accent Purple
-        new THREE.Color(0x22d3ee)  // Accent Teal
-      ];
+      // 2. CONSTELLATION NODES (Interactive Foreground Nodes)
+      const nodesCount = 90;
+      const nodesGeometry = new THREE.BufferGeometry();
+      const nodesPositions = new Float32Array(nodesCount * 3);
+      const nodeVelocities = [];
+      const nodePositionsArray = [];
       
-      for (let i = 0; i < particlesCount * 3; i += 3) {
-        // Random coordinates in space
-        positions[i] = (Math.random() - 0.5) * 160;     // X
-        positions[i + 1] = (Math.random() - 0.5) * 90;  // Y
-        positions[i + 2] = (Math.random() - 0.5) * 100; // Z
+      for (let i = 0; i < nodesCount; i++) {
+        const x = (Math.random() - 0.5) * 120;
+        const y = (Math.random() - 0.5) * 70;
+        const z = (Math.random() - 0.5) * 60;
         
-        // Color mixing
-        const mixedColor = themeColors[Math.floor(Math.random() * themeColors.length)];
-        colors[i] = mixedColor.r;
-        colors[i + 1] = mixedColor.g;
-        colors[i + 2] = mixedColor.b;
+        nodesPositions[i * 3] = x;
+        nodesPositions[i * 3 + 1] = y;
+        nodesPositions[i * 3 + 2] = z;
+        
+        nodePositionsArray.push(new THREE.Vector3(x, y, z));
+        
+        nodeVelocities.push(new THREE.Vector3(
+          (Math.random() - 0.5) * 0.08,
+          (Math.random() - 0.5) * 0.08,
+          (Math.random() - 0.5) * 0.04
+        ));
       }
       
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-      
-      // Particle texture / style
-      const material = new THREE.PointsMaterial({
-        size: 0.75,
-        vertexColors: true,
+      nodesGeometry.setAttribute('position', new THREE.BufferAttribute(nodesPositions, 3));
+      const nodesMaterial = new THREE.PointsMaterial({
+        size: 1.0,
+        color: 0x4f8fff,
         transparent: true,
-        opacity: 0.8,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false
+        opacity: 0.9,
+        blending: THREE.AdditiveBlending
+      });
+      const nodes = new THREE.Points(nodesGeometry, nodesMaterial);
+      scene.add(nodes);
+      
+      // 3. CONSTELLATION LINES (Connection segments)
+      const linesMaterial = new THREE.LineBasicMaterial({
+        color: 0x4f8fff,
+        transparent: true,
+        opacity: 0.18,
+        blending: THREE.AdditiveBlending
       });
       
-      const points = new THREE.Points(geometry, material);
-      scene.add(points);
+      let linesGeometry = new THREE.BufferGeometry();
+      let lineSegments = new THREE.LineSegments(linesGeometry, linesMaterial);
+      scene.add(lineSegments);
       
-      camera.position.z = 65;
+      camera.position.z = 60;
       
-      // Mouse tracking for parallax
-      let mouseX = 0;
-      let mouseY = 0;
-      let targetX = 0;
-      let targetY = 0;
+      // Mouse and Parallax Vectors
+      let mouse = new THREE.Vector3(0, 0, 0);
+      let targetMouse = new THREE.Vector3(0, 0, 0);
       
       window.addEventListener('mousemove', (e) => {
-        mouseX = (e.clientX - window.innerWidth / 2) * 0.035;
-        mouseY = (e.clientY - window.innerHeight / 2) * 0.035;
+        targetMouse.x = (e.clientX - window.innerWidth / 2) * 0.12;
+        targetMouse.y = -(e.clientY - window.innerHeight / 2) * 0.12;
       });
       
-      // Window resize
       window.addEventListener('resize', () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
       });
       
-      // Animation Loop
       const clock = new THREE.Clock();
       
       const animate = () => {
         requestAnimationFrame(animate);
         
+        const delta = clock.getDelta();
         const elapsedTime = clock.getElapsedTime();
         
-        // Wave motion on particles (breathing wave effect)
-        const posArray = geometry.attributes.position.array;
-        for (let i = 0; i < particlesCount; i++) {
+        // Interpolate mouse coordinates smoothly
+        mouse.lerp(targetMouse, 0.05);
+        
+        // Update nodes position based on velocity and mouse gravity
+        const positions = nodesGeometry.attributes.position.array;
+        
+        for (let i = 0; i < nodesCount; i++) {
           const i3 = i * 3;
-          const x = posArray[i3];
-          const z = posArray[i3 + 2];
-          // Slowly wave positions vertically over time
-          posArray[i3 + 1] += Math.sin(elapsedTime + x * 0.04 + z * 0.04) * 0.022;
+          let pos = nodePositionsArray[i];
+          let vel = nodeVelocities[i];
+          
+          pos.add(vel);
+          
+          // Boundaries check
+          if (pos.x > 75 || pos.x < -75) vel.x *= -1;
+          if (pos.y > 45 || pos.y < -45) vel.y *= -1;
+          if (pos.z > 40 || pos.z < -40) vel.z *= -1;
+          
+          // Proximity effect: Pull nodes closer to mouse slightly
+          const distToMouse = pos.distanceTo(mouse);
+          if (distToMouse < 28) {
+            const force = (28 - distToMouse) * 0.0018;
+            const dir = new THREE.Vector3().subVectors(mouse, pos).normalize();
+            pos.addScaledVector(dir, force);
+          }
+          
+          positions[i3] = pos.x;
+          positions[i3 + 1] = pos.y;
+          positions[i3 + 2] = pos.z;
         }
-        geometry.attributes.position.needsUpdate = true;
+        nodesGeometry.attributes.position.needsUpdate = true;
         
-        // Rotate the entire particle cloud gently
-        points.rotation.y = elapsedTime * 0.015;
-        points.rotation.x = elapsedTime * 0.008;
+        // Recalculate dynamic line paths
+        const linePositions = [];
+        for (let i = 0; i < nodesCount; i++) {
+          for (let j = i + 1; j < nodesCount; j++) {
+            const dist = nodePositionsArray[i].distanceTo(nodePositionsArray[j]);
+            if (dist < 22) {
+              linePositions.push(nodePositionsArray[i].x, nodePositionsArray[i].y, nodePositionsArray[i].z);
+              linePositions.push(nodePositionsArray[j].x, nodePositionsArray[j].y, nodePositionsArray[j].z);
+            }
+          }
+        }
         
-        // Smooth mouse parallax interpolation
-        targetX += (mouseX - targetX) * 0.05;
-        targetY += (mouseY - targetY) * 0.05;
-        camera.position.x = targetX;
-        camera.position.y = -targetY;
+        // Swap geometries
+        scene.remove(lineSegments);
+        linesGeometry.dispose();
+        linesGeometry = new THREE.BufferGeometry();
+        linesGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(linePositions), 3));
+        lineSegments = new THREE.LineSegments(linesGeometry, linesMaterial);
+        scene.add(lineSegments);
         
-        // Scroll Parallax (particles shift camera upwards/downwards smoothly)
+        // Slow constant rotations
+        starfield.rotation.y = elapsedTime * 0.006;
+        starfield.rotation.x = elapsedTime * 0.003;
+        
+        // Camera Parallax: Scroll & Mouse interpolation
         const scrollY = window.scrollY;
-        camera.position.y -= (scrollY * 0.03 - camera.position.y) * 0.08;
+        camera.position.y -= (scrollY * 0.035 - camera.position.y) * 0.06;
+        
+        camera.position.x += (mouse.x * 0.15 - camera.position.x) * 0.05;
+        camera.position.y += (mouse.y * 0.15 - camera.position.y) * 0.05;
         
         camera.lookAt(scene.position);
         renderer.render(scene, camera);
