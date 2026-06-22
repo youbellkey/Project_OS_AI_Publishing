@@ -21,3 +21,4 @@
 # Allow README.md if created later
 !README.md
 !DOCUMENTATION.md
+!LEGAL.md
